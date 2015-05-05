@@ -101,7 +101,77 @@ namespace ProjVerify
 
         private void btnGo_Click(object sender, EventArgs e)
         {
+            lblMessage.Text = "";
             SaveSettings();
+
+            try
+            {
+                ToggleControls(false);
+
+                FileInfo csproj = new FileInfo(txtCsproj.Text);
+                if (!csproj.Exists)
+                {
+                    lblMessage.Text = String.Format("Cannot find {0}", csproj.Name);
+                    return;
+                }
+
+                Dictionary<string, string> csprojD;
+
+                using (FileStream fs = csproj.OpenRead())
+                using (StreamReader sr = new StreamReader(fs))
+                {
+                    string csprojString = sr.ReadToEnd();
+
+                    XElement element = XElement.Parse(csprojString);
+                    XNamespace ns = element.GetDefaultNamespace();
+
+                    csprojD = (from field in element.Descendants(ns + "Compile")
+                               select Path.Combine(csproj.DirectoryName, field.Attribute("Include").Value))
+                                            .Union(from field in element.Descendants(ns + "Content")
+                                                   select Path.Combine(csproj.DirectoryName, field.Attribute("Include").Value)).ToDictionary(x => x, x => "");
+                }
+
+                Dictionary<string, string> paths = new Dictionary<string, string>();
+                ProcessDir(paths, txtDir.Text);
+
+                List<string> notInFileSystem = new List<string>();
+                List<string> notInCsproj = new List<string>();
+
+                foreach(var a in csprojD.Keys)
+                {
+                    if (!paths.Keys.Contains(a))
+                        notInFileSystem.Add(a);
+                }
+
+                foreach (var a in paths.Keys)
+                {
+                    if (!csprojD.Keys.Contains(a))
+                        notInCsproj.Add(a);
+                }
+            }
+            finally
+            {
+                ToggleControls(true);
+            }
+        }
+
+        private void ToggleControls(bool enabled)
+        {
+            txtCsproj.Enabled = enabled;
+            txtDir.Enabled = enabled;
+            button1.Enabled = enabled;
+            button2.Enabled = enabled;
+        }
+
+        private void ProcessDir(Dictionary<string,string> dict, string path)
+        {
+            DirectoryInfo d = new DirectoryInfo(path);
+
+            foreach (var f in d.GetFiles())
+                dict.Add(f.FullName, "");
+
+            foreach (var subdir in d.GetDirectories())
+                ProcessDir(dict, subdir.FullName);
         }
     }
 }

@@ -35,6 +35,7 @@
             this.txtDir = new System.Windows.Forms.TextBox();
             this.button2 = new System.Windows.Forms.Button();
             this.btnGo = new System.Windows.Forms.Button();
+            this.lblMessage = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -106,11 +107,20 @@
             this.btnGo.UseVisualStyleBackColor = true;
             this.btnGo.Click += new System.EventHandler(this.btnGo_Click);
             // 
+            // lblMessage
+            // 
+            this.lblMessage.AutoSize = true;
+            this.lblMessage.Location = new System.Drawing.Point(19, 110);
+            this.lblMessage.Name = "lblMessage";
+            this.lblMessage.Size = new System.Drawing.Size(0, 13);
+            this.lblMessage.TabIndex = 7;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 262);
+            this.Controls.Add(this.lblMessage);
             this.Controls.Add(this.btnGo);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.txtDir);
@@ -134,6 +144,7 @@
         private System.Windows.Forms.TextBox txtDir;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button btnGo;
+        private System.Windows.Forms.Label lblMessage;
 
 
     }
