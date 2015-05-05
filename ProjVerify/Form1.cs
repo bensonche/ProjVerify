@@ -101,7 +101,8 @@ namespace ProjVerify
 
         private void btnGo_Click(object sender, EventArgs e)
         {
-            lblMessage.Text = "";
+            txtResult.Text = "";
+
             SaveSettings();
 
             try
@@ -111,7 +112,7 @@ namespace ProjVerify
                 FileInfo csproj = new FileInfo(txtCsproj.Text);
                 if (!csproj.Exists)
                 {
-                    lblMessage.Text = String.Format("Cannot find {0}", csproj.Name);
+                    txtResult.Text = String.Format("Cannot find {0}", csproj.Name);
                     return;
                 }
 
@@ -148,6 +149,23 @@ namespace ProjVerify
                     if (!csprojD.Keys.Contains(a))
                         notInCsproj.Add(a);
                 }
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("Files in csproj but not in file system:");
+                sb.AppendLine();
+                foreach (var a in notInFileSystem)
+                    sb.AppendLine(a);
+
+                sb.AppendLine();
+                sb.AppendLine();
+                sb.AppendLine();
+                
+                sb.AppendLine("Files in file system but not in csproj:");
+                sb.AppendLine();
+                foreach (var a in notInCsproj)
+                    sb.AppendLine(a);
+
+                txtResult.Text=sb.ToString();
             }
             finally
             {

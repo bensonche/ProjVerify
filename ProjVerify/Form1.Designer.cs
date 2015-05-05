@@ -35,7 +35,7 @@
             this.txtDir = new System.Windows.Forms.TextBox();
             this.button2 = new System.Windows.Forms.Button();
             this.btnGo = new System.Windows.Forms.Button();
-            this.lblMessage = new System.Windows.Forms.Label();
+            this.txtResult = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // label1
@@ -70,7 +70,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(16, 57);
+            this.label2.Location = new System.Drawing.Point(13, 58);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(132, 13);
             this.label2.TabIndex = 3;
@@ -80,9 +80,9 @@
             // 
             this.txtDir.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtDir.Location = new System.Drawing.Point(19, 74);
+            this.txtDir.Location = new System.Drawing.Point(16, 74);
             this.txtDir.Name = "txtDir";
-            this.txtDir.Size = new System.Drawing.Size(222, 20);
+            this.txtDir.Size = new System.Drawing.Size(225, 20);
             this.txtDir.TabIndex = 4;
             // 
             // button2
@@ -107,20 +107,24 @@
             this.btnGo.UseVisualStyleBackColor = true;
             this.btnGo.Click += new System.EventHandler(this.btnGo_Click);
             // 
-            // lblMessage
+            // txtResult
             // 
-            this.lblMessage.AutoSize = true;
-            this.lblMessage.Location = new System.Drawing.Point(19, 110);
-            this.lblMessage.Name = "lblMessage";
-            this.lblMessage.Size = new System.Drawing.Size(0, 13);
-            this.lblMessage.TabIndex = 7;
+            this.txtResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtResult.Location = new System.Drawing.Point(16, 130);
+            this.txtResult.Multiline = true;
+            this.txtResult.Name = "txtResult";
+            this.txtResult.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtResult.Size = new System.Drawing.Size(256, 120);
+            this.txtResult.TabIndex = 8;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 262);
-            this.Controls.Add(this.lblMessage);
+            this.Controls.Add(this.txtResult);
             this.Controls.Add(this.btnGo);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.txtDir);
@@ -144,7 +148,7 @@
         private System.Windows.Forms.TextBox txtDir;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button btnGo;
-        private System.Windows.Forms.Label lblMessage;
+        private System.Windows.Forms.TextBox txtResult;
 
 
     }
