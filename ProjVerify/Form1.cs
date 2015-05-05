@@ -99,7 +99,7 @@ namespace ProjVerify
 
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void btnGo_Click(object sender, EventArgs e)
         {
             SaveSettings();
         }
