@@ -15,6 +15,8 @@ namespace ProjVerify
 {
     public partial class Form1 : Form
     {
+        private readonly string[] ExcludeList = { "obj", "bin" };
+
         public Form1()
         {
             InitializeComponent();
@@ -45,7 +47,7 @@ namespace ProjVerify
                     txtCsproj.Text = (from field in element.Elements("appSettings").Elements("csproj")
                                       select field.Value).FirstOrDefault() ?? "";
                     txtDir.Text = (from field in element.Elements("appSettings").Elements("directory")
-                                      select field.Value).FirstOrDefault() ?? "";
+                                   select field.Value).FirstOrDefault() ?? "";
                 }
             }
             catch { }
@@ -56,9 +58,9 @@ namespace ProjVerify
             try
             {
                 IsolatedStorageFile isoStore = IsolatedStorageFile.GetStore(IsolatedStorageScope.User | IsolatedStorageScope.Assembly, null, null);
-                
+
                 using (IsolatedStorageFileStream isoStream = new IsolatedStorageFileStream(settingsFileName, FileMode.OpenOrCreate, FileAccess.Write, isoStore))
-                using(StreamWriter sw = new StreamWriter(isoStream))
+                using (StreamWriter sw = new StreamWriter(isoStream))
                 {
                     XElement element =
                         new XElement("config",
@@ -80,7 +82,7 @@ namespace ProjVerify
         {
             var dialog = new OpenFileDialog();
             var result = dialog.ShowDialog();
-            if(result == DialogResult.OK)
+            if (result == DialogResult.OK)
             {
                 txtCsproj.Text = dialog.FileName;
 
@@ -128,17 +130,19 @@ namespace ProjVerify
 
                     csprojD = (from field in element.Descendants(ns + "Compile")
                                select Path.Combine(csproj.DirectoryName, field.Attribute("Include").Value))
-                                            .Union(from field in element.Descendants(ns + "Content")
-                                                   select Path.Combine(csproj.DirectoryName, field.Attribute("Include").Value)).ToDictionary(x => x, x => "");
+                               .Union
+                               (from field in element.Descendants(ns + "Content")
+                                select Path.Combine(csproj.DirectoryName, field.Attribute("Include").Value))
+                                .ToDictionary(x => System.Net.WebUtility.UrlDecode(x), x => "");
                 }
 
                 Dictionary<string, string> paths = new Dictionary<string, string>();
-                ProcessDir(paths, txtDir.Text);
+                ProcessDir(paths, txtDir.Text, true);
 
                 List<string> notInFileSystem = new List<string>();
                 List<string> notInCsproj = new List<string>();
 
-                foreach(var a in csprojD.Keys)
+                foreach (var a in csprojD.Keys)
                 {
                     if (!paths.Keys.Contains(a))
                         notInFileSystem.Add(a);
@@ -159,13 +163,13 @@ namespace ProjVerify
                 sb.AppendLine();
                 sb.AppendLine();
                 sb.AppendLine();
-                
+
                 sb.AppendLine("Files in file system but not in csproj:");
                 sb.AppendLine();
                 foreach (var a in notInCsproj)
                     sb.AppendLine(a);
 
-                txtResult.Text=sb.ToString();
+                txtResult.Text = sb.ToString();
             }
             finally
             {
@@ -181,7 +185,7 @@ namespace ProjVerify
             button2.Enabled = enabled;
         }
 
-        private void ProcessDir(Dictionary<string,string> dict, string path)
+        private void ProcessDir(Dictionary<string, string> dict, string path, bool topLevel = false)
         {
             DirectoryInfo d = new DirectoryInfo(path);
 
@@ -189,7 +193,10 @@ namespace ProjVerify
                 dict.Add(f.FullName, "");
 
             foreach (var subdir in d.GetDirectories())
-                ProcessDir(dict, subdir.FullName);
+            {
+                if (!topLevel || !ExcludeList.Contains(subdir.Name.ToLower()))
+                    ProcessDir(dict, subdir.FullName);
+            }
         }
     }
 }
