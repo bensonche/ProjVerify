@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,7 +16,7 @@ namespace ProjVerify
 {
     public partial class Form1 : Form
     {
-        private readonly string[] ExcludeList = { "obj", "bin" };
+        private readonly string[] ExcludeList = {"obj", "bin"};
 
         public Form1()
         {
@@ -34,11 +35,11 @@ namespace ProjVerify
             {
                 IsolatedStorageFile isoStore = IsolatedStorageFile.GetStore(IsolatedStorageScope.User | IsolatedStorageScope.Assembly, null, null);
 
-                if (!isoStore.FileExists(settingsFileName))
+                if(!isoStore.FileExists(settingsFileName))
                     return;
 
-                using (IsolatedStorageFileStream isoStream = new IsolatedStorageFileStream(settingsFileName, FileMode.Open, FileAccess.Read, isoStore))
-                using (StreamReader sr = new StreamReader(isoStream))
+                using(IsolatedStorageFileStream isoStream = new IsolatedStorageFileStream(settingsFileName, FileMode.Open, FileAccess.Read, isoStore))
+                using(StreamReader sr = new StreamReader(isoStream))
                 {
                     string settings = sr.ReadToEnd();
 
@@ -50,7 +51,9 @@ namespace ProjVerify
                                    select field.Value).FirstOrDefault() ?? "";
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         private void SaveSettings()
@@ -59,21 +62,23 @@ namespace ProjVerify
             {
                 IsolatedStorageFile isoStore = IsolatedStorageFile.GetStore(IsolatedStorageScope.User | IsolatedStorageScope.Assembly, null, null);
 
-                using (IsolatedStorageFileStream isoStream = new IsolatedStorageFileStream(settingsFileName, FileMode.OpenOrCreate, FileAccess.Write, isoStore))
-                using (StreamWriter sw = new StreamWriter(isoStream))
+                using(IsolatedStorageFileStream isoStream = new IsolatedStorageFileStream(settingsFileName, FileMode.OpenOrCreate, FileAccess.Write, isoStore))
+                using(StreamWriter sw = new StreamWriter(isoStream))
                 {
                     XElement element =
                         new XElement("config",
                             new XElement("appSettings",
                                 new XElement("csproj", txtCsproj.Text),
                                 new XElement("directory", txtDir.Text)
-                            )
-                        );
+                                )
+                            );
 
                     sw.Write(element.ToString());
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         #endregion
@@ -82,7 +87,7 @@ namespace ProjVerify
         {
             var dialog = new OpenFileDialog();
             var result = dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            if(result == DialogResult.OK)
             {
                 txtCsproj.Text = dialog.FileName;
 
@@ -94,7 +99,7 @@ namespace ProjVerify
         {
             var dialog = new FolderBrowserDialog();
             var result = dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            if(result == DialogResult.OK)
             {
                 txtDir.Text = dialog.SelectedPath;
             }
@@ -112,28 +117,29 @@ namespace ProjVerify
                 ToggleControls(false);
 
                 FileInfo csproj = new FileInfo(txtCsproj.Text);
-                if (!csproj.Exists)
+                if(!csproj.Exists)
                 {
                     txtResult.Text = String.Format("Cannot find {0}", csproj.Name);
                     return;
                 }
 
-                Dictionary<string, string> csprojD;
+                Dictionary<string, int> csprojD = new Dictionary<string, int>();
 
-                using (FileStream fs = csproj.OpenRead())
-                using (StreamReader sr = new StreamReader(fs))
+                using(FileStream fs = csproj.OpenRead())
+                using(StreamReader sr = new StreamReader(fs))
                 {
                     string csprojString = sr.ReadToEnd();
 
                     XElement element = XElement.Parse(csprojString);
                     XNamespace ns = element.GetDefaultNamespace();
 
-                    csprojD = (from field in element.Descendants(ns + "Compile")
-                               select Path.Combine(csproj.DirectoryName, field.Attribute("Include").Value))
-                               .Union
-                               (from field in element.Descendants(ns + "Content")
-                                select Path.Combine(csproj.DirectoryName, field.Attribute("Include").Value))
-                                .ToDictionary(x => System.Net.WebUtility.UrlDecode(x), x => "");
+                    var compile = from field in element.Descendants(ns + "Compile")
+                                  select Path.Combine(csproj.DirectoryName, field.Attribute("Include").Value);
+                    var content = from field in element.Descendants(ns + "Content")
+                                  select Path.Combine(csproj.DirectoryName, field.Attribute("Include").Value);
+
+                    csprojD.Add(compile);
+                    csprojD.Add(content);
                 }
 
                 Dictionary<string, string> paths = new Dictionary<string, string>();
@@ -142,22 +148,16 @@ namespace ProjVerify
                 List<string> notInFileSystem = new List<string>();
                 List<string> notInCsproj = new List<string>();
 
-                foreach (var a in csprojD.Keys)
+                foreach(var a in paths.Keys)
                 {
-                    if (!paths.Keys.Contains(a))
-                        notInFileSystem.Add(a);
-                }
-
-                foreach (var a in paths.Keys)
-                {
-                    if (!csprojD.Keys.Contains(a))
+                    if(!csprojD.Keys.Contains(a))
                         notInCsproj.Add(a);
                 }
 
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine("Files in csproj but not in file system:");
                 sb.AppendLine();
-                foreach (var a in notInFileSystem)
+                foreach(var a in notInFileSystem.OrderBy(x => x))
                     sb.AppendLine(a);
 
                 sb.AppendLine();
@@ -166,8 +166,24 @@ namespace ProjVerify
 
                 sb.AppendLine("Files in file system but not in csproj:");
                 sb.AppendLine();
-                foreach (var a in notInCsproj)
+                foreach(var a in notInCsproj.OrderBy(x => x))
                     sb.AppendLine(a);
+
+
+                sb.AppendLine();
+                sb.AppendLine();
+                sb.AppendLine();
+
+                sb.AppendLine("Duplicates in csproj:");
+                var duplicates = from p in csprojD.AsEnumerable()
+                                 where p.Value > 1
+                                 orderby p.Key
+                                 select p;
+
+                foreach(var proj in duplicates)
+                {
+                    sb.AppendLine(proj.Key);
+                }
 
                 txtResult.Text = sb.ToString();
             }
@@ -189,13 +205,27 @@ namespace ProjVerify
         {
             DirectoryInfo d = new DirectoryInfo(path);
 
-            foreach (var f in d.GetFiles())
+            foreach(var f in d.GetFiles())
                 dict.Add(f.FullName, "");
 
-            foreach (var subdir in d.GetDirectories())
+            foreach(var subdir in d.GetDirectories())
             {
-                if (!topLevel || !ExcludeList.Contains(subdir.Name.ToLower()))
+                if(!topLevel || !ExcludeList.Contains(subdir.Name.ToLower()))
                     ProcessDir(dict, subdir.FullName);
+            }
+        }
+    }
+
+    internal static class Extensions
+    {
+        public static void Add(this Dictionary<string, int> dict, IEnumerable<string> e)
+        {
+            foreach (var a in e)
+            {
+                if (dict.ContainsKey(a))
+                    dict[a]++;
+                else
+                    dict[a] = 1;
             }
         }
     }
