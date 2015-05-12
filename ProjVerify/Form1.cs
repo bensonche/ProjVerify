@@ -148,6 +148,12 @@ namespace ProjVerify
                 List<string> notInFileSystem = new List<string>();
                 List<string> notInCsproj = new List<string>();
 
+                foreach(var a in csprojD.Keys)
+                {
+                    if(!paths.Keys.Contains(a))
+                        notInFileSystem.Add(a);
+                }
+
                 foreach(var a in paths.Keys)
                 {
                     if(!csprojD.Keys.Contains(a))
