@@ -134,7 +134,7 @@
             this.Controls.Add(this.label1);
             this.MinimumSize = new System.Drawing.Size(300, 300);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "ProjVerify";
             this.ResumeLayout(false);
             this.PerformLayout();
 
